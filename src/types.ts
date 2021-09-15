@@ -15,6 +15,9 @@ export const TYPES = {
 	// Services
 	SonarrService: Symbol('SonarrService'),
 	RadarrService: Symbol('RadarrService'),
+
+	// Libraries
+	Requests: Symbol('Requests'),
 };
 
 export const INTERFACES = {
