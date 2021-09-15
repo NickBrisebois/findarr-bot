@@ -2,13 +2,21 @@
   "name": "findarr-bot",
   "version": "0.0.1",
   "description": "Discord bot for managing shows/movies with Sonarr/Radarr",
-  "main": "src/index.ts",
+  "main": "index.ts",
   "dependencies": {
+    "@types/node": "^16.9.1",
     "discord.js": "^13.1.0",
+    "dotenv": "^10.0.0",
+    "inversify": "^5.1.1",
+    "reflect-metadata": "^0.1.13",
+    "superagent": "^6.1.0",
     "typescript": "^4.4.3"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts",
+    "watch": "tsc -p tsconfig.json -w",
+    "test": "mocha -r ts-node/register \"tests/**/*.spec.ts\"",
+    "lint": "npx eslint . --ext .js,.ts"
   },
   "repository": {
     "type": "git",
@@ -26,5 +34,16 @@
   "bugs": {
     "url": "https://github.com/NickBrisebois/findarr-bot/issues"
   },
-  "homepage": "https://github.com/NickBrisebois/findarr-bot#readme"
+  "homepage": "https://github.com/NickBrisebois/findarr-bot#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "chai": "^4.3.4",
+    "eslint": "^7.32.0",
+    "mocha": "^9.1.1",
+    "ts-mockito": "^2.6.1",
+    "ts-node": "^10.2.1"
+  }
 }
