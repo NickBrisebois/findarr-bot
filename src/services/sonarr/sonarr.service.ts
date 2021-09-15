@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types';
 import { getSeriesLookup } from './endpoints';
-import superagent, { SuperAgentStatic } from 'superagent';
+import { SuperAgentStatic } from 'superagent';
 import { Observable } from 'rxjs';
 import { observify } from '../utils';
 

@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types';
-import superagent from 'superagent';
+import { SuperAgentStatic } from 'superagent';
 
 @injectable()
 export class RadarrService {

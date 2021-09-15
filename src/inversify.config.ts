@@ -6,6 +6,7 @@ import { DiscordBot, DISCORD_INTENTS } from './bots/discord/bot';
 import { SonarrService } from './services/sonarr/sonarr.service';
 import { RadarrService } from './services/radarr/radarr.service';
 import superagent, { SuperAgentStatic } from 'superagent';
+import { MessagingService } from './services/messaging/messaging.service';
 
 const container = new Container();
 
@@ -21,9 +22,10 @@ container.bind<string>(TYPES.RadarrApiKey).toConstantValue(process.env.RADARR_AP
 container.bind<string>(TYPES.SonarrUrl).toConstantValue(process.env.SONARR_URL);
 container.bind<string>(TYPES.RadarrUrl).toConstantValue(process.env.SONARR_URL);
 
-// APIs
+// Services
 container.bind<SonarrService>(TYPES.SonarrService).to(SonarrService).inSingletonScope();
 container.bind<RadarrService>(TYPES.RadarrService).to(RadarrService).inSingletonScope();
+container.bind<MessagingService>(TYPES.MessagingService).to(MessagingService).inSingletonScope();
 
 // Libraries
 container
