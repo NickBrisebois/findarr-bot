@@ -23,10 +23,12 @@ export const TYPES = {
 
 export interface IncomingMessageParsed {
 	content: string;
+	command: string;
 	user: string;	
 	id: string;
 }
 
 export interface ReturnedMessage {
-	responseData: object;
+	currentState: any;
+	responseData: object;	
 }

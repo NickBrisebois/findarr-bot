@@ -22,7 +22,7 @@ export class SonarrService {
 		this.req = req;
 	}
 
-	seriesLookupById(tvdbId: string) {
+	public seriesLookupById(tvdbId: string): Observable<any> {
 		const endpoint = getSeriesLookup(this.sonarrBaseUrl);
 
 		return observify(this.req.get(endpoint).query({
@@ -31,7 +31,7 @@ export class SonarrService {
 		}));
 	}
 
-	seriesLookupByTerm(term: string): Observable<Object> {
+	public seriesLookupByTerm(term: string): Observable<Object> {
 		const endpoint = getSeriesLookup(this.sonarrBaseUrl);
 
 		return observify(this.req.get(endpoint).query({
