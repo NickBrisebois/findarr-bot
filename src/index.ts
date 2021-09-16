@@ -11,20 +11,20 @@ function main(): void {
 		return;
 	}
 
-	/*
 	const bot = container.get<DiscordBot>(TYPES.DiscordBot);
 	bot.listen().then(() => {
 		console.log('Logged in!');
 	}).catch((error) =>  {
 		console.log(`Issue logging in: ${error}`);
 	});
-	*/
 
 	const sonarrService = container.get<SonarrService>(TYPES.SonarrService);
 	
+	/*
 	sonarrService.seriesLookupByTerm('Game of thrones').subscribe((data) => {
 		console.log(data);
 	});
+*/
 }
 
 main();

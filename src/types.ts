@@ -21,6 +21,12 @@ export const TYPES = {
 	Requests: Symbol('Requests'),
 };
 
-export const INTERFACES = {
+export interface IncomingMessageParsed {
+	content: string;
+	user: string;	
+	id: string;
+}
 
-};
+export interface ReturnedMessage {
+	responseData: object;
+}
