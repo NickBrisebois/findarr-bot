@@ -1,12 +1,12 @@
-import "reflect-metadata";
-import { Container } from "inversify";
-import { TYPES } from "./types";
-import { Client } from "discord.js";
-import { DiscordBot, DISCORD_INTENTS } from "./bots/discord/bot";
-import { SonarrService } from "./services/sonarr/sonarr.service";
-import { RadarrService } from "./services/radarr/radarr.service";
-import superagent, { SuperAgentStatic } from "superagent";
-import { MessagingService } from "./services/messaging/messaging.service";
+import 'reflect-metadata';
+import { Container } from 'inversify';
+import { TYPES } from './types';
+import { Client } from 'discord.js';
+import { DiscordBot, DISCORD_INTENTS } from './bots/discord/bot';
+import { SonarrService } from './services/sonarr/sonarr.service';
+import { RadarrService } from './services/radarr/radarr.service';
+import superagent, { SuperAgentStatic } from 'superagent';
+import { MessagingService } from './services/messaging/messaging.service';
 
 const container = new Container();
 

@@ -1,3 +1,2 @@
-export const getSeriesLookup = (
-	baseUrl: string,
-) => `${baseUrl}/api/series/lookup`;
+export const getSeriesLookup = (baseUrl: string) =>
+	`${baseUrl}/api/series/lookup`;

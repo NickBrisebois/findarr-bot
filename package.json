@@ -17,7 +17,6 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "watch": "tsc -p tsconfig.json -w",
     "test": "mocha -r ts-node/register \"**/*.spec.ts\"",
     "lint": "npx eslint . --ext .js,.ts"
   },

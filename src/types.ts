@@ -1,24 +1,26 @@
+import { Message } from 'discord.js';
+
 export const TYPES = {
 	// Bots
-	DiscordBot: Symbol("DiscordBot"),
-	Client: Symbol("Client"),
+	DiscordBot: Symbol('DiscordBot'),
+	Client: Symbol('Client'),
 
 	// API Keys
-	DiscordToken: Symbol("DiscordToken"),
-	SonarrApiKey: Symbol("SonarrApiKey"),
-	RadarrApiKey: Symbol("RadarrApiKey"),
+	DiscordToken: Symbol('DiscordToken'),
+	SonarrApiKey: Symbol('SonarrApiKey'),
+	RadarrApiKey: Symbol('RadarrApiKey'),
 
 	// Paths
-	SonarrUrl: Symbol("SonarrUrl"),
-	RadarrUrl: Symbol("RadarrUrl"),
+	SonarrUrl: Symbol('SonarrUrl'),
+	RadarrUrl: Symbol('RadarrUrl'),
 
 	// Services
-	SonarrService: Symbol("SonarrService"),
-	RadarrService: Symbol("RadarrService"),
-	MessagingService: Symbol("MessagingService"),
+	SonarrService: Symbol('SonarrService'),
+	RadarrService: Symbol('RadarrService'),
+	MessagingService: Symbol('MessagingService'),
 
 	// Libraries
-	Requests: Symbol("Requests"),
+	Requests: Symbol('Requests'),
 };
 
 export interface IncomingMessageParsed {
@@ -29,7 +31,6 @@ export interface IncomingMessageParsed {
 }
 
 export interface ReturnedMessage {
-	currentState: any;
 	responseData: object;
 }
 
@@ -64,4 +65,14 @@ export interface SonarrShowInfo {
 	added: string;
 	ratings?: string[] | null;
 	qualityProfileId: number;
+}
+
+// todo
+export interface RadarrMovieInfo {
+	[key: string]: string;
+}
+
+export interface MessageResponse {
+	message: Message;
+	callbackFunc: Function;
 }
