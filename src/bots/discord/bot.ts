@@ -1,20 +1,24 @@
 import {
+    ButtonInteraction,
     Client,
     Intents,
+    Interaction,
     Message,
+    MessageActionRow,
+    MessageButton,
     MessageEmbed,
     MessagePayload,
 } from 'discord.js';
 import { inject, injectable } from 'inversify';
-import { Observable } from 'rxjs';
-import { numberToEmojiNumber } from '../../services/utils';
 import {
     MessagingService,
+    SONARR_POSTER_IMAGE_INDEX,
     states,
 } from '../../services/messaging/messaging.service';
 import {
     IncomingMessageParsed,
     MessageResponse,
+    RadarrMovieInfo,
     ReturnedMessage,
     SonarrShowInfo,
     TYPES,
@@ -26,6 +30,8 @@ export const DISCORD_INTENTS = [
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
 ];
+
+const BUTTONS_PER_MSG_ROW = 5;
 
 @injectable()
 export class DiscordBot {
@@ -41,6 +47,7 @@ export class DiscordBot {
 
     resultsParserMapper = {
         [states.SHOW_REQUESTED]: this.craftShowResultsMessage.bind(this),
+        [states.SHOW_CHOSEN]: this.craftSelectedShowMessage.bind(this),
     };
 
     constructor(
@@ -54,22 +61,37 @@ export class DiscordBot {
     }
 
     public listen(): Promise<string> {
+        // Watch for bot state changes
         this.messagingService.getStateWatcher().subscribe({
             next: (newState: states) => {
                 this.currentState = newState;
             },
         });
 
-        this.client.on('messageCreate', (message: Message) => {
-            if (message.author.bot) return;
-            this.handleMessage(message);
+        this.client.on(
+            'messageCreate',
+            this.handleMessageOrInteraction.bind(this)
+        );
+        this.client.on('interactionCreate', (interaction: Interaction) => {
+            if (interaction.isButton()) {
+                this.handleMessageOrInteraction(interaction);
+            }
         });
 
         return this.client.login(this.token);
     }
 
-    private handleMessage(message: Message) {
-        const parsedMessage = this.parseIncomingMessage(message);
+    private handleMessageOrInteraction(message: Message | Interaction): void {
+        let parsedMessage: IncomingMessageParsed;
+        if (message instanceof Message) {
+            if (message.author.bot) return;
+            parsedMessage = this.parseIncomingMessage(message as Message);
+        } else {
+            if (!message.isButton()) return;
+            parsedMessage = this.parseIncomingInteraction(
+                message as ButtonInteraction
+            );
+        }
 
         this.messagingService.getResponse(parsedMessage).subscribe({
             next: (returnedMsg: ReturnedMessage) => {
@@ -82,7 +104,11 @@ export class DiscordBot {
                     if (responseMsg) {
                         message
                             .reply(responseMsg.message)
-                            .then(responseMsg.callbackFunc);
+                            .then(
+                                responseMsg.callbackFunc
+                                    ? responseMsg.callbackFunc
+                                    : () => {}
+                            );
                     }
                 }
             },
@@ -92,17 +118,17 @@ export class DiscordBot {
         });
     }
 
-    private craftShowResultsMessage(shows: {
-        responseData: SonarrShowInfo[];
-        choices: number;
-    }): MessageResponse {
+    private craftShowResultsMessage(shows: ReturnedMessage): MessageResponse {
+        const showData: SonarrShowInfo[] =
+            shows.responseData as SonarrShowInfo[];
+
         const showResultsEmbed = new MessageEmbed();
         showResultsEmbed.setTitle('Show Search Results');
 
         let index = 1;
-        const showListing = shows.responseData
+        const showListing = showData
             .map(
-                (show: SonarrShowInfo) =>
+                (show: SonarrShowInfo | RadarrMovieInfo) =>
                     `${index++}) ${
                         show.title
                     } [TVDb Link](https://www.thetvdb.com/?id=${
@@ -113,15 +139,56 @@ export class DiscordBot {
 
         showResultsEmbed.setDescription(showListing);
 
-        const message = { embeds: [showResultsEmbed] } as Message;
+        // Attach a thumbnail of the most likely requested show
+        if (shows.responseData[0]?.images[SONARR_POSTER_IMAGE_INDEX]) {
+            showResultsEmbed.setThumbnail(
+                shows.responseData[0].images[SONARR_POSTER_IMAGE_INDEX]['url']
+            );
+        }
+
+        // Create required number of button rows
+        let buttonRows: MessageActionRow[] = [];
+        for (let i = 0; i <= shows.numChoices / BUTTONS_PER_MSG_ROW; i++) {
+            buttonRows.push(new MessageActionRow());
+        }
+
+        // Add buttons to button rows
+        for (let i = 1; i <= shows.numChoices; i++) {
+            const buttonRowIndex = Math.floor(i / BUTTONS_PER_MSG_ROW);
+            buttonRows[buttonRowIndex].addComponents(
+                new MessageButton()
+                    .setCustomId(i.toString())
+                    .setLabel(i.toString())
+                    .setStyle('SECONDARY')
+            );
+        }
+
+        const message = {
+            embeds: [showResultsEmbed],
+            components: buttonRows,
+        } as Message;
 
         return {
             message,
-            callbackFunc: (sentMsg: Message) => {
-                for (let i = 0; i < shows.choices; i++) {
-                    sentMsg.react(numberToEmojiNumber(i + 1));
-                }
-            },
+        };
+    }
+
+    private craftSelectedShowMessage(selectedShow: ReturnedMessage) {
+        const showData: SonarrShowInfo =
+            selectedShow.responseData as SonarrShowInfo;
+
+        const showEmbed = new MessageEmbed();
+        showEmbed.setTitle('Chosen Show');
+
+        const msgEmbedData = `${showData.title}`;
+        showEmbed.setDescription(msgEmbedData);
+
+        const message = {
+            embeds: [showEmbed],
+        };
+
+        return {
+            message,
         };
     }
 
@@ -133,10 +200,21 @@ export class DiscordBot {
         const content = split.splice(1, split.length).join(' ');
 
         return {
-            user: message.author.username,
+            user: message.author.id,
             command,
             content,
             id: message.id,
         } as IncomingMessageParsed;
+    }
+
+    private parseIncomingInteraction(
+        interaction: ButtonInteraction
+    ): IncomingMessageParsed {
+        return {
+            user: interaction.user.id,
+            content: interaction.customId,
+            command: '',
+            id: interaction.id,
+        };
     }
 }

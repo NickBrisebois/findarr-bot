@@ -4,6 +4,7 @@
   "description": "Discord bot for managing shows/movies with Sonarr/Radarr",
   "main": "index.ts",
   "dependencies": {
+    "@discordjs/builders": "^0.6.0",
     "@types/node": "^16.9.1",
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.1.0",

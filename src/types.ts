@@ -31,7 +31,12 @@ export interface IncomingMessageParsed {
 }
 
 export interface ReturnedMessage {
-	responseData: object;
+	responseData:
+		| SonarrShowInfo[]
+		| RadarrMovieInfo[]
+		| SonarrShowInfo
+		| RadarrMovieInfo;
+	numChoices: number;
 }
 
 export interface SonarrShowInfo {
@@ -74,5 +79,5 @@ export interface RadarrMovieInfo {
 
 export interface MessageResponse {
 	message: Message;
-	callbackFunc: Function;
+	callbackFunc?: Function;
 }
