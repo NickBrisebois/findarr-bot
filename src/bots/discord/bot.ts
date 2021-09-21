@@ -18,6 +18,7 @@ import {
 import {
     IncomingMessageParsed,
     MessageResponse,
+    MediaRequest,
     RadarrMovieInfo,
     ReturnedMessage,
     SonarrShowInfo,
@@ -61,13 +62,6 @@ export class DiscordBot {
     }
 
     public listen(): Promise<string> {
-        // Watch for bot state changes
-        this.messagingService.getStateWatcher().subscribe({
-            next: (newState: states) => {
-                this.currentState = newState;
-            },
-        });
-
         this.client.on(
             'messageCreate',
             this.handleMessageOrInteraction.bind(this)
@@ -78,6 +72,13 @@ export class DiscordBot {
             }
         });
 
+        // Watch for bot state changes
+        this.messagingService.getStateWatcher().subscribe({
+            next: (newState: states) => {
+                this.currentState = newState;
+            },
+        });
+
         return this.client.login(this.token);
     }
 
@@ -86,23 +87,30 @@ export class DiscordBot {
         if (message instanceof Message) {
             if (message.author.bot) return;
             parsedMessage = this.parseIncomingMessage(message as Message);
-        } else {
-            if (!message.isButton()) return;
+        } else if (message.isButton()) {
             parsedMessage = this.parseIncomingInteraction(
                 message as ButtonInteraction
             );
+        } else {
+            return;
         }
 
         this.messagingService.getResponse(parsedMessage).subscribe({
-            next: (returnedMsg: ReturnedMessage) => {
-                if (returnedMsg) {
-                    const responseMsg =
-                        this.resultsParserMapper[this.currentState](
-                            returnedMsg
-                        );
+            next: (mediaReq: MediaRequest) => {
+                if (mediaReq) {
+                    const responseParser =
+                        this.resultsParserMapper[this.currentState];
+
+                    let responseMsg;
+                    if (responseParser) {
+                        responseMsg = responseParser(mediaReq);
+                    } else {
+                        message.reply('No parsers available');
+                        return;
+                    }
 
                     if (responseMsg) {
-                        message
+                        (message as Message)
                             .reply(responseMsg.message)
                             .then(
                                 responseMsg.callbackFunc
@@ -118,9 +126,9 @@ export class DiscordBot {
         });
     }
 
-    private craftShowResultsMessage(shows: ReturnedMessage): MessageResponse {
-        const showData: SonarrShowInfo[] =
-            shows.responseData as SonarrShowInfo[];
+    private craftShowResultsMessage(request: MediaRequest): MessageResponse {
+        const showData = request.resultsOfSearch as SonarrShowInfo[];
+        const numResults = showData.length;
 
         const showResultsEmbed = new MessageEmbed();
         showResultsEmbed.setTitle('Show Search Results');
@@ -140,24 +148,24 @@ export class DiscordBot {
         showResultsEmbed.setDescription(showListing);
 
         // Attach a thumbnail of the most likely requested show
-        if (shows.responseData[0]?.images[SONARR_POSTER_IMAGE_INDEX]) {
+        if (showData[0]?.images[SONARR_POSTER_IMAGE_INDEX]) {
             showResultsEmbed.setThumbnail(
-                shows.responseData[0].images[SONARR_POSTER_IMAGE_INDEX]['url']
+                showData[0].images[SONARR_POSTER_IMAGE_INDEX]['url']
             );
         }
 
         // Create required number of button rows
         let buttonRows: MessageActionRow[] = [];
-        for (let i = 0; i <= shows.numChoices / BUTTONS_PER_MSG_ROW; i++) {
+        for (let i = 0; i <= numResults / BUTTONS_PER_MSG_ROW; i++) {
             buttonRows.push(new MessageActionRow());
         }
 
         // Add buttons to button rows
-        for (let i = 1; i <= shows.numChoices; i++) {
+        for (let i = 1; i <= numResults; i++) {
             const buttonRowIndex = Math.floor(i / BUTTONS_PER_MSG_ROW);
             buttonRows[buttonRowIndex].addComponents(
                 new MessageButton()
-                    .setCustomId(i.toString())
+                    .setCustomId(`${request.id}:${(i - 1).toString()}`) // i - 1 to get true index
                     .setLabel(i.toString())
                     .setStyle('SECONDARY')
             );
@@ -173,9 +181,8 @@ export class DiscordBot {
         };
     }
 
-    private craftSelectedShowMessage(selectedShow: ReturnedMessage) {
-        const showData: SonarrShowInfo =
-            selectedShow.responseData as SonarrShowInfo;
+    private craftSelectedShowMessage(mediaReq: MediaRequest): MessageResponse {
+        const showData = mediaReq.chosenMedia as SonarrShowInfo;
 
         const showEmbed = new MessageEmbed();
         showEmbed.setTitle('Chosen Show');
@@ -185,7 +192,7 @@ export class DiscordBot {
 
         const message = {
             embeds: [showEmbed],
-        };
+        } as Message;
 
         return {
             message,

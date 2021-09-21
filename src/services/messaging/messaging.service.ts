@@ -1,8 +1,9 @@
-import { EventEmitter } from 'events';
 import { inject, injectable } from 'inversify';
 import { map, Observable, of, Subject, tap } from 'rxjs';
 import {
     IncomingMessageParsed,
+    MediaType,
+    MediaRequest,
     RadarrMovieInfo,
     ReturnedMessage,
     SonarrShowInfo,
@@ -36,8 +37,7 @@ export class MessagingService {
     private currentState;
     private commandMapping: object;
     private stateChange: Subject<states>;
-
-    private queuedSearchResults: SonarrShowInfo[] | RadarrMovieInfo[];
+    private requestQueue: MediaRequest[] = [];
 
     stateMapper = {
         [states.SHOW_REQUESTED]: this.lookupChosenShow,
@@ -57,18 +57,23 @@ export class MessagingService {
 
     public getResponse(
         message: IncomingMessageParsed
-    ): Observable<ReturnedMessage> {
+    ): Observable<MediaRequest> {
         if (
             this.currentState == states.READY &&
             Object.keys(this.commandMapping).indexOf(message.command) > -1
         ) {
             return this.commandMapping[message.command].bind(this)(
+                message.id,
                 message.content
             );
         } else if (this.currentState != states.READY && message.content) {
-            console.log('test');
+            const splitContent = message.content.split(':');
+            const requestId = splitContent[0];
+            const choice = splitContent[1];
+
             return this.stateMapper[this.currentState].bind(this)(
-                message.content
+                requestId,
+                choice
             );
         } else {
             return new Observable();
@@ -78,22 +83,21 @@ export class MessagingService {
     private requestedShowResults() {}
 
     @command({ command: '!tv' })
-    private addShow(requestedShow: string): Observable<ReturnedMessage> {
+    private addShow(
+        id: string,
+        requestedShow: string
+    ): Observable<MediaRequest> {
         return this.sonarrService.seriesLookupByTerm(requestedShow).pipe(
-            map((showsResult: { body: Array<SonarrShowInfo> }) => {
-                const trimmedShowsResult = showsResult.body.splice(
-                    0,
-                    LIST_NUMBER_SHOWS
-                );
-                const response = {
-                    responseData: trimmedShowsResult,
-                    numChoices: trimmedShowsResult.length,
-                } as ReturnedMessage;
-                return response;
-            }),
-            tap((showsResult: any) => {
+            map((showsResult: { body: Array<SonarrShowInfo> }) => ({
+                id: id,
+                messageId: id,
+                type: MediaType.SHOW,
+                resultsOfSearch: showsResult.body.splice(0, LIST_NUMBER_SHOWS),
+                chosenMedia: null,
+            })),
+            tap((request: any) => {
                 this.setState(states.SHOW_REQUESTED);
-                this.queuedSearchResults = showsResult.responseData;
+                this.requestQueue.push(request);
             })
         );
     }
@@ -114,17 +118,21 @@ export class MessagingService {
     }
 
     private lookupChosenShow(
+        requestId: string,
         chosenShowIndex: string
-    ): Observable<ReturnedMessage> {
-        const chosenShow = this.queuedSearchResults[parseInt(chosenShowIndex)];
+    ): Observable<MediaRequest> {
+        console.log('lookup chosen show');
+        const queuedRequest = this.requestQueue.find(
+            (request: MediaRequest) => request.id === requestId
+        );
+        if (!queuedRequest) return null;
+        queuedRequest.chosenMedia =
+            queuedRequest.resultsOfSearch[parseInt(chosenShowIndex)];
 
         this.setState(states.SHOW_CHOSEN);
 
-        return new Observable<ReturnedMessage>((subscriber) => {
-            subscriber.next({
-                responseData: chosenShow,
-                numChoices: 0,
-            } as ReturnedMessage);
+        return new Observable<MediaRequest>((subscriber) => {
+            subscriber.next(queuedRequest);
         });
     }
 }

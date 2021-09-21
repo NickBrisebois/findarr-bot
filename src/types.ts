@@ -23,6 +23,11 @@ export const TYPES = {
 	Requests: Symbol('Requests'),
 };
 
+export enum MediaType {
+	MOVIE,
+	SHOW,
+}
+
 export interface IncomingMessageParsed {
 	content: string;
 	command: string;
@@ -80,4 +85,12 @@ export interface RadarrMovieInfo {
 export interface MessageResponse {
 	message: Message;
 	callbackFunc?: Function;
+}
+
+export interface MediaRequest {
+	id: string;
+	type: MediaType;
+	messageId: string;
+	resultsOfSearch: SonarrShowInfo[] | RadarrMovieInfo[];
+	chosenMedia: SonarrShowInfo | RadarrMovieInfo | null;
 }
