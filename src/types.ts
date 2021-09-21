@@ -84,6 +84,7 @@ export interface RadarrMovieInfo {
 
 export interface MessageResponse {
 	message: Message;
+	editAsResponse: boolean;
 	callbackFunc?: Function;
 }
 
@@ -93,4 +94,5 @@ export interface MediaRequest {
 	messageId: string;
 	resultsOfSearch: SonarrShowInfo[] | RadarrMovieInfo[];
 	chosenMedia: SonarrShowInfo | RadarrMovieInfo | null;
+	initialResponseId: string | null; // bot response message that we continue to update as user responds
 }

@@ -117,11 +117,22 @@ export class MessagingService {
         return this.stateChange.asObservable();
     }
 
+    public setMediaRequestInitialResponseMsgId(
+        requestId: string,
+        responseMsgId: string
+    ) {
+        const requestIndex = this.requestQueue.findIndex(
+            (req: MediaRequest) => req.id === requestId
+        );
+        const request: MediaRequest = this.requestQueue[requestIndex];
+        request.initialResponseId = responseMsgId;
+        this.requestQueue[requestIndex] = request;
+    }
+
     private lookupChosenShow(
         requestId: string,
         chosenShowIndex: string
     ): Observable<MediaRequest> {
-        console.log('lookup chosen show');
         const queuedRequest = this.requestQueue.find(
             (request: MediaRequest) => request.id === requestId
         );

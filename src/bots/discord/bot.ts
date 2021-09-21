@@ -101,7 +101,7 @@ export class DiscordBot {
                     const responseParser =
                         this.resultsParserMapper[this.currentState];
 
-                    let responseMsg;
+                    let responseMsg: any;
                     if (responseParser) {
                         responseMsg = responseParser(mediaReq);
                     } else {
@@ -110,13 +110,26 @@ export class DiscordBot {
                     }
 
                     if (responseMsg) {
-                        (message as Message)
-                            .reply(responseMsg.message)
-                            .then(
-                                responseMsg.callbackFunc
-                                    ? responseMsg.callbackFunc
-                                    : () => {}
-                            );
+                        if (!responseMsg.editAsResponse) {
+                            message
+                                .reply(responseMsg.message)
+                                .then(
+                                    responseMsg.callbackFunc
+                                        ? responseMsg.callbackFunc
+                                        : () => {}
+                                );
+                        } else {
+                            console.log(mediaReq.initialResponseId);
+                            message.channel.messages
+                                .fetch(mediaReq.initialResponseId)
+                                .then((msgToEdit: Message) => {
+                                    msgToEdit
+                                        .edit(responseMsg.message)
+                                        .then(() => {
+                                            console.log('good');
+                                        });
+                                });
+                        }
                     }
                 }
             },
@@ -178,6 +191,13 @@ export class DiscordBot {
 
         return {
             message,
+            editAsResponse: false,
+            callbackFunc: (postedMsg: Message) => {
+                this.messagingService.setMediaRequestInitialResponseMsgId(
+                    request.id,
+                    postedMsg.id
+                );
+            },
         };
     }
 
@@ -185,17 +205,41 @@ export class DiscordBot {
         const showData = mediaReq.chosenMedia as SonarrShowInfo;
 
         const showEmbed = new MessageEmbed();
-        showEmbed.setTitle('Chosen Show');
+        showEmbed.setTitle(`Request ${showData.title}?`);
 
-        const msgEmbedData = `${showData.title}`;
+        const msgEmbedData = `${showData.overview}`;
         showEmbed.setDescription(msgEmbedData);
+
+        // Attach a thumbnail of the most likely requested show
+        if (showData.images[SONARR_POSTER_IMAGE_INDEX]) {
+            showEmbed.setImage(
+                showData.images[SONARR_POSTER_IMAGE_INDEX]['url']
+            );
+        }
+
+        const buttonContent = ['yes', 'no', 'cancel'];
+        let buttons: MessageButton[] = [];
+        buttonContent.forEach((button: string) => {
+            buttons.push(
+                new MessageButton()
+                    .setCustomId(button)
+                    .setLabel(button)
+                    .setStyle('SECONDARY')
+            );
+        });
+
+        const messageContent = `Would you like to add this show (${showData.title}?)`;
 
         const message = {
             embeds: [showEmbed],
+            components: [new MessageActionRow().addComponents(buttons)],
+            content: messageContent,
         } as Message;
 
         return {
             message,
+            editAsResponse: true,
+            callbackFunc: null,
         };
     }
 
