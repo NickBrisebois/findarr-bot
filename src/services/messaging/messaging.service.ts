@@ -21,10 +21,22 @@ const NEW_STATE_EVENT = 'newState';
 // Index of 'poster' image in show image array
 export const SONARR_POSTER_IMAGE_INDEX = 1;
 
+// TODO: replace with real i18n
+export const responsesI18N = {
+    [responses.REQUEST]: 'Request',
+    [responses.CANCEL]: 'Cancel',
+};
+
+export const enum responses {
+    REQUEST,
+    CANCEL,
+}
+
 export const enum states {
     READY,
     SHOW_REQUESTED,
     SHOW_CHOSEN,
+    SHOW_REQUEST_CONFIRMED,
     MOVIE_REQUESTED,
     MOVIE_CHOSEN,
     UNKNOWN_STATE,
@@ -41,7 +53,7 @@ export class MessagingService {
 
     stateMapper = {
         [states.SHOW_REQUESTED]: this.lookupChosenShow,
-        [states.SHOW_CHOSEN]: this.lookupChosenShow,
+        [states.SHOW_CHOSEN]: this.confirmShowRequest,
     };
 
     constructor(
@@ -69,11 +81,11 @@ export class MessagingService {
         } else if (this.currentState != states.READY && message.content) {
             const splitContent = message.content.split(':');
             const requestId = splitContent[0];
-            const choice = splitContent[1];
+            const data = splitContent[1];
 
             return this.stateMapper[this.currentState].bind(this)(
                 requestId,
-                choice
+                data
             );
         } else {
             return new Observable();
@@ -117,6 +129,9 @@ export class MessagingService {
         return this.stateChange.asObservable();
     }
 
+    // Once the first response from the bot is posted, we don't actually post any other messages
+    // We just edit the first message. To do that we need to know the initial bot response's message ID
+    // We use this function to set it
     public setMediaRequestInitialResponseMsgId(
         requestId: string,
         responseMsgId: string
@@ -145,5 +160,13 @@ export class MessagingService {
         return new Observable<MediaRequest>((subscriber) => {
             subscriber.next(queuedRequest);
         });
+    }
+
+    private confirmShowRequest(
+        requestId: string,
+        data: string
+    ): Observable<MediaRequest> {
+        console.log('confirming!');
+        return new Observable<MediaRequest>();
     }
 }

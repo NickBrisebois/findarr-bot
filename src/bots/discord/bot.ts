@@ -12,6 +12,8 @@ import {
 import { inject, injectable } from 'inversify';
 import {
     MessagingService,
+    responses,
+    responsesI18N,
     SONARR_POSTER_IMAGE_INDEX,
     states,
 } from '../../services/messaging/messaging.service';
@@ -119,15 +121,12 @@ export class DiscordBot {
                                         : () => {}
                                 );
                         } else {
-                            console.log(mediaReq.initialResponseId);
-                            message.channel.messages
-                                .fetch(mediaReq.initialResponseId)
-                                .then((msgToEdit: Message) => {
-                                    msgToEdit
-                                        .edit(responseMsg.message)
-                                        .then(() => {
-                                            console.log('good');
-                                        });
+                            (message as ButtonInteraction)
+                                .update(responseMsg.message)
+                                .then((postedMsg: Message) => {
+                                    if (responseMsg.callbackFunc) {
+                                        responseMsg.callbackFunc(postedMsg);
+                                    }
                                 });
                         }
                     }
@@ -217,13 +216,13 @@ export class DiscordBot {
             );
         }
 
-        const buttonContent = ['yes', 'no', 'cancel'];
+        const buttonContent = [responses.REQUEST, responses.CANCEL];
         let buttons: MessageButton[] = [];
-        buttonContent.forEach((button: string) => {
+        buttonContent.forEach((button: responses) => {
             buttons.push(
                 new MessageButton()
-                    .setCustomId(button)
-                    .setLabel(button)
+                    .setCustomId(`${mediaReq.id}:${button}`)
+                    .setLabel(responsesI18N[button])
                     .setStyle('SECONDARY')
             );
         });
@@ -247,7 +246,10 @@ export class DiscordBot {
     // that our messaging service can handle
     private parseIncomingMessage(message: Message): IncomingMessageParsed {
         const split = message.content.split(' ');
+
+        // get the command ('ie !tv or !movie')
         const command = split[0];
+        // get command content ('ie everything after !tv or !movie')
         const content = split.splice(1, split.length).join(' ');
 
         return {

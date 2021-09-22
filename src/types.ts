@@ -95,4 +95,5 @@ export interface MediaRequest {
 	resultsOfSearch: SonarrShowInfo[] | RadarrMovieInfo[];
 	chosenMedia: SonarrShowInfo | RadarrMovieInfo | null;
 	initialResponseId: string | null; // bot response message that we continue to update as user responds
+	cancelled: boolean;
 }

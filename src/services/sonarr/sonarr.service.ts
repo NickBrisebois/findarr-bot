@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
-import { TYPES } from '../../types';
-import { getSeriesLookup } from './endpoints';
+import { SonarrShowInfo, TYPES } from '../../types';
+import { getSeriesLookup, getSeriesRequestByTvdbId } from './endpoints';
 import { SuperAgentStatic } from 'superagent';
 import { Observable } from 'rxjs';
 import { observify } from '../utils';
@@ -40,5 +40,20 @@ export class SonarrService {
                 term,
             })
         );
+    }
+
+    public requestSeriesByTvdbId(show: SonarrShowInfo): Observable<Object> {
+        const endpoint = getSeriesRequestByTvdbId(this.sonarrBaseUrl);
+
+        const payload = {
+            tvdbId: show.tvdbId,
+            title: show.title,
+            profileId: show.profileId,
+            titleSlug: show.titleSlug,
+            images: show.images,
+            seasons: show.seasons,
+        };
+
+        return observify(this.req.post(endpoint).send(payload));
     }
 }
