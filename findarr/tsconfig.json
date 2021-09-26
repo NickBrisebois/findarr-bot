@@ -1,15 +1,20 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "baseUrl": "./",
-    "target": "es2016",
+    "target": "ES2021",
     "esModuleInterop": true,
-    "lib": [
-      "es6",
-      "dom"
-    ],
+    "lib": ["es6", "dom", "DOM.Iterable", "esnext"],
+    "allowJs": true,
     "sourceMap": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "isolatedModules": true,
     "types": [
       // add node as an option
       "node",
@@ -26,7 +31,6 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"],
+  "include": ["src"]
 }

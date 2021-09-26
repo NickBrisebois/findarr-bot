@@ -1,11 +1,9 @@
 import { inject, injectable } from 'inversify';
-import { map, Observable, of, Subject, tap } from 'rxjs';
+import { map, Observable, Subject, tap } from 'rxjs';
 import {
     IncomingMessageParsed,
     MediaType,
     MediaRequest,
-    RadarrMovieInfo,
-    ReturnedMessage,
     SonarrShowInfo,
     TYPES,
 } from '../../types';
@@ -16,7 +14,11 @@ import { command, commands } from './command.decorator';
 // show <num> shows when searching
 // max is 9 unless you want to get ~complicated~ (because number emojis only go to 9)
 const LIST_NUMBER_SHOWS = 9;
-const NEW_STATE_EVENT = 'newState';
+
+export const enum responses {
+    REQUEST,
+    CANCEL,
+}
 
 // Index of 'poster' image in show image array
 export const SONARR_POSTER_IMAGE_INDEX = 1;
@@ -26,11 +28,6 @@ export const responsesI18N = {
     [responses.REQUEST]: 'Request',
     [responses.CANCEL]: 'Cancel',
 };
-
-export const enum responses {
-    REQUEST,
-    CANCEL,
-}
 
 export const enum states {
     READY,
