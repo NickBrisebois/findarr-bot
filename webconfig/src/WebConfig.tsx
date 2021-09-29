@@ -1,16 +1,30 @@
-import React from 'react';
+import React, { Component, Fragment } from 'react';
 import './WebConfig.scss';
 import Button from 'react-bootstrap/Button';
 
-function WebConfig() {
-  return (
-    <div className="WebConfig">
-      <header className="WebConfig-header">
-        <h1>Hello</h1>
-      </header>
-      <Button></Button>
-    </div>
-  );
-}
+type Props = {
+    name: string;
+};
 
-export default WebConfig;
+export class WebConfig extends Component<Props> {
+    static defaultProps = {
+        name: 'Test',
+    };
+
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            name: 'react',
+        };
+    }
+
+    render() {
+        return (
+            <Fragment>
+                <div className="container">
+                    <p>{this.props.name}</p>
+                </div>
+            </Fragment>
+        );
+    }
+}

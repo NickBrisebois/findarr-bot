@@ -9,6 +9,7 @@
     "discord.js": "^13.1.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "express-json-validator-middleware": "^2.2.1",
     "inversify": "^5.1.1",
     "inversify-inject-decorators": "^3.1.0",
     "reflect-metadata": "^0.1.13",

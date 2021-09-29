@@ -18,13 +18,8 @@ function main(): void {
 		return;
 	}
 
-	// Initialize DB
-	configDbService.init().then(() => {
-		// Start API for WebConfig
-		webConfigApi.start().then(() => {
-			webConfigApi.initEndpoints();
-		});
-	});
+	// Start API for WebConfig
+	webConfigApi.start();
 
 	// Start Bot
 	bot.listen()
