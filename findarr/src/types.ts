@@ -18,6 +18,8 @@ export const TYPES = {
 	SonarrService: Symbol('SonarrService'),
 	RadarrService: Symbol('RadarrService'),
 	MessagingService: Symbol('MessagingService'),
+	ApiService: Symbol('ApiService'),
+	ConfigDatabaseService: Symbol('ConfigDatabaseService'),
 
 	// Libraries
 	Requests: Symbol('Requests'),
@@ -96,4 +98,13 @@ export interface MediaRequest {
 	chosenMedia: SonarrShowInfo | RadarrMovieInfo | null;
 	initialResponseId: string | null; // bot response message that we continue to update as user responds
 	cancelled: boolean;
+}
+
+export interface FindarrConfig {
+	id: number;
+	discord_token: string;
+	sonarr_api_key: string;
+	radarr_api_key: string;
+	sonarr_url: string;
+	radarr_url: string;
 }

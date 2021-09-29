@@ -7,6 +7,8 @@ import { SonarrService } from './services/sonarr/sonarr.service';
 import { RadarrService } from './services/radarr/radarr.service';
 import superagent, { SuperAgentStatic } from 'superagent';
 import { MessagingService } from './services/messaging/messaging.service';
+import { ApiService } from './services/api/api.service';
+import { ConfigDatabaseService } from './services/config_database/config-database.service';
 
 const container = new Container();
 
@@ -40,6 +42,11 @@ container
 container
 	.bind<MessagingService>(TYPES.MessagingService)
 	.to(MessagingService)
+	.inSingletonScope();
+container.bind<ApiService>(TYPES.ApiService).to(ApiService).inSingletonScope();
+container
+	.bind<ConfigDatabaseService>(TYPES.ConfigDatabaseService)
+	.to(ConfigDatabaseService)
 	.inSingletonScope();
 
 // Libraries
