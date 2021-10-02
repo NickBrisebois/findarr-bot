@@ -59,7 +59,7 @@ export class ConfigDatabaseService {
 
     public async getConfig(): Promise<FindarrConfig> {
         const currentConfig = await this.db.get(
-            'SELECT id FROM findarr_config WHERE id = ?',
+            'SELECT * FROM findarr_config WHERE id = ?',
             CONFIG_ID
         );
         return currentConfig as FindarrConfig;
@@ -96,18 +96,28 @@ export class ConfigDatabaseService {
         // Create default config if it doesn't exist
         this.createDefaultConfig();
 
-        const result = await this.db.run(
+        await this.db.run(
             `UPDATE findarr_config 
-                SET discord_token = discord_token,
-                sonarr_api_key = sonarr_api_key,
-                radarr_api_key = radarr_api_key,
-                sonarr_url = sonarr_url,
-                radarr_url = radarr_url
-             WHERE id = id
+                SET discord_token = $discord_token,
+                sonarr_api_key = $sonarr_api_key,
+                radarr_api_key = $radarr_api_key,
+                sonarr_url = $sonarr_url,
+                radarr_url = $radarr_url 
+             WHERE id = ${CONFIG_ID} 
             `,
-            ...Object.values(newConfig)
+            this.sqliteMapifyKeys(newConfig)
         );
 
         return await this.getConfig();
+    }
+
+    // prefix all keys in an object with $ to be used with sqlite query
+    // sqlite queries need variables to be prefixed with $
+    private sqliteMapifyKeys(obj: Object): Object {
+        const newObject = {};
+        Object.keys(obj).forEach((key: string) => {
+            newObject[`\$${key}`] = obj[key];
+        });
+        return newObject;
     }
 }

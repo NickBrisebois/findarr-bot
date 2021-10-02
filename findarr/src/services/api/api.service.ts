@@ -21,9 +21,9 @@ export class ApiService {
         this.configDatabaseService.init().then(() => {
             this.validator = new Validator({});
             this.findarrApi = express();
-            this.initEndpoints();
 
             this.findarrApi.use(express.json());
+            this.findarrApi.use(express.urlencoded({ extended: true }));
             this.findarrApi.use((error, req: Request, res: Response, next) => {
                 if (error instanceof ValidationError) {
                     res.status(400).send(error.validationErrors);
@@ -31,6 +31,8 @@ export class ApiService {
                 }
                 next(error);
             });
+
+            this.initEndpoints();
 
             this.findarrApi.listen(this.port, () => {
                 console.log(`Findarr API started on port ${this.port}`);
@@ -54,8 +56,8 @@ export class ApiService {
         });
     }
 
-    private updateConfig(req: Request, res: Response) {
-        res.send({});
-        //this.configDatabaseService.updateConfiguration()
+    private updateConfig(req, res, next) {
+        this.configDatabaseService.updateConfiguration(req.body);
+        this.getConfig(req, res);
     }
 }
