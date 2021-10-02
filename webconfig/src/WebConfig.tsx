@@ -1,29 +1,21 @@
 import React, { Component, Fragment } from 'react';
 import './WebConfig.scss';
-import Button from 'react-bootstrap/Button';
+import { Container } from 'react-bootstrap';
+import { SettingsContainer } from './views/SettingsContainer';
 
-type Props = {
-    name: string;
-};
-
-export class WebConfig extends Component<Props> {
-    static defaultProps = {
-        name: 'Test',
-    };
-
-    constructor(props: Props) {
+export class WebConfig extends Component {
+    constructor(props: any) {
         super(props);
-        this.state = {
-            name: 'react',
-        };
+
+        this.state = {};
     }
 
     render() {
         return (
             <Fragment>
-                <div className="container">
-                    <p>{this.props.name}</p>
-                </div>
+                <Container>
+                    <SettingsContainer></SettingsContainer>
+                </Container>
             </Fragment>
         );
     }
